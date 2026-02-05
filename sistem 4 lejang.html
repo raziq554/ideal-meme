@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuiz Sistem 4 Lejang</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #FFFBEB; /* Soft orange background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .quiz-container {
+            max-width: 700px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 2rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            padding: 2.5rem;
+            text-align: center;
+            animation: fadeIn 1s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .start-screen, .end-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+        }
+        .start-screen p, .end-screen p {
+            max-width: 500px;
+        }
+        .progress-bar-container {
+            width: 100%;
+            height: 12px;
+            background-color: #fce7b1; /* Progress bar background */
+            border-radius: 9999px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #F97316; /* Bright orange progress bar */
+            transition: width 0.5s ease-in-out;
+        }
+        .option-button {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            margin: 0.5rem 0;
+            border-radius: 1rem;
+            border: 2px solid #fedbaf; /* Soft orange border */
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-align: left;
+            font-weight: 600;
+            background: #fff;
+        }
+        .option-button:hover {
+            background: #fdf2e9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .option-button.correct {
+            background: #d9f99d; /* Lime green background */
+            border-color: #84cc16; /* Bright green border */
+            animation: bounceIn 0.5s ease-out;
+        }
+        .option-button.incorrect {
+            background: #FEE2E2; /* Soft red background */
+            border-color: #EF4444; /* Red border */
+            animation: shake 0.5s ease-out;
+        }
+        .option-button:disabled {
+            cursor: not-allowed;
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        .feedback {
+            margin-top: 2rem;
+        }
+        .meme-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 1.5rem;
+        }
+        .meme-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 1.5rem;
+            border: 4px solid #E3A008; /* Dark orange border */
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        .meme-caption {
+            font-weight: 800;
+            margin-top: 1.5rem;
+            color: #1f2937;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+<div id="quiz-app" class="quiz-container">
+    <!-- Quiz content will be loaded here by JavaScript -->
+</div>
+
+<script>
+    const quizApp = document.getElementById('quiz-app');
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let answered = false;
+
+    // Array of quiz question objects
+    const questions = [
+        {
+            question: "Apakah susunan yang betul bagi 4 lejang dalam enjin pembakaran dalaman?",
+            options: ["Exhaust, Compression, Power, Intake", "Power, Compression, Intake, Exhaust", "Intake, Compression, Power, Exhaust", "Intake, Power, Compression, Exhaust"],
+            answer: "Intake, Compression, Power, Exhaust"
+        },
+        {
+            question: "Apa yang berlaku semasa lejang Intake?",
+            options: ["Piston naik, injap Exhaust dibuka", "Piston turun, injap Intake dibuka", "Piston naik, injap Intake ditutup", "Piston turun, injap Exhaust ditutup"],
+            answer: "Piston turun, injap Intake dibuka"
+        },
+        {
+            question: "Lejang mana yang menjana Power untuk menggerakkan kenderaan?",
+            options: ["Lejang Intake", "Lejang Compression", "Lejang Power", "Lejang Exhaust"],
+            answer: "Lejang Power"
+        },
+        {
+            question: "Apa yang berlaku masa lejang Compression?",
+            options: ["Piston turun, injap dibuka", "Piston naik, injap ditutup", "Piston turun, injap ditutup", "Piston naik, injap dibuka"],
+            answer: "Piston naik, injap ditutup"
+        },
+        {
+            question: "Apa yang berlaku masa lejang Exhaust?",
+            options: ["Piston turun, injap Exhaust dibuka", "Piston naik, injap Exhaust dibuka", "Piston naik, injap Intake dibuka", "Piston turun, injap Intake dibuka"],
+            answer: "Piston naik, injap Exhaust dibuka"
+        },
+        {
+            question: "Titik tertinggi yang omboh capai dikenali sebagai?",
+            options: ["Bottom Dead Center (BDC)", "Top Dead Center (TDC)", "Titik Mati Atas (TMA)", "Titik Mati Bawah (TMB)"],
+            answer: "Top Dead Center (TDC)"
+        },
+        {
+            question: "Titik terendah yang omboh capai dikenali sebagai?",
+            options: ["Bottom Dead Center (BDC)", "Top Dead Center (TDC)", "Titik Mati Atas (TMA)", "Titik Mati Bawah (TMB)"],
+            answer: "Bottom Dead Center (BDC)"
+        },
+        {
+            question: "Apa yang menghasilkan percikan untuk menyalakan campuran udara-bahan api?",
+            options: ["Injap Intake", "Aci Engkol", "Palam Pencucuh", "Omboh"],
+            answer: "Palam Pencucuh"
+        },
+        {
+            question: "Berapa banyak putaran aci engkol diperlukan untuk melengkapkan satu kitaran 4-lejang?",
+            options: ["1 putaran", "2 putaran", "3 putaran", "4 putaran"],
+            answer: "2 putaran"
+        },
+        {
+            question: "Berapa kali injap Intake dibuka dan ditutup dalam satu kitaran?",
+            options: ["Dibuka 1 kali, ditutup 1 kali", "Dibuka 2 kali, ditutup 2 kali", "Dibuka 1 kali, ditutup 2 kali", "Dibuka 2 kali, ditutup 1 kali"],
+            answer: "Dibuka 1 kali, ditutup 1 kali"
+        },
+        {
+            question: "Apakah perbezaan utama antara enjin 4-lejang dan 2-lejang?",
+            options: ["Enjin 4-lejang lebih berkuasa", "Enjin 4-lejang lebih ringan", "Enjin 4-lejang lebih cekap bahan api", "Enjin 4-lejang lebih murah"],
+            answer: "Enjin 4-lejang lebih cekap bahan api"
+        },
+        {
+            question: "Apakah kelebihan utama enjin 4-lejang berbanding enjin 2-lejang?",
+            options: ["Lebih kecil dan ringkas", "Kurang bahagian bergerak", "Lebih senyap dan kurang gegaran", "Lebih murah untuk dihasilkan"],
+            answer: "Lebih senyap dan kurang gegaran"
+        },
+        {
+            question: "Fungsi aci engkol adalah untuk menukar gerakan ____________ omboh kepada gerakan ____________.",
+            options: ["linear, putaran", "putaran, linear", "linear, naik-turun", "putaran, naik-turun"],
+            answer: "linear, putaran"
+        },
+        {
+            question: "Apakah nama lejang pertama?",
+            options: ["Lejang Power", "Lejang Exhaust", "Lejang Compression", "Lejang Intake"],
+            answer: "Lejang Intake"
+        },
+        {
+            question: "Lejang Power juga dikenali sebagai...",
+            options: ["Lejang Combustion", "Lejang Explosion", "Lejang Combustion dan Expansion", "Lejang Power dan Combustion"],
+            answer: "Lejang Combustion dan Expansion"
+        },
+        {
+            question: "Gas Exhaust dilepaskan melalui...",
+            options: ["Injap Intake", "Injap Exhaust", "Palam Pencucuh", "Injap Masukan"],
+            answer: "Injap Exhaust"
+        },
+        {
+            question: "Apa yang menolak omboh ke bawah semasa lejang Power?",
+            options: ["Tenaga kinetik aci engkol", "Tekanan gas yang terbakar", "Sedutan dari omboh lain", "Gerakan bertentangan omboh lain"],
+            answer: "Tekanan gas yang terbakar"
+        },
+        {
+            question: "Semasa lejang Compression, kedua-dua injap adalah...",
+            options: ["Terbuka sepenuhnya", "Separuh terbuka", "Tertutup sepenuhnya", "Satu terbuka, satu tertutup"],
+            answer: "Tertutup sepenuhnya"
+        },
+        {
+            question: "Di mana campuran udara-bahan api dinyalakan?",
+            options: ["Dalam Intake Manifold", "Dalam Exhaust Manifold", "Dalam Kebuk Pembakaran", "Dalam Carburetor"],
+            answer: "Dalam Kebuk Pembakaran"
+        },
+        {
+            question: "Apa yang berlaku bila injap Intake dibuka?",
+            options: ["Campuran udara-bahan api disedut masuk", "Gas Exhaust dilepaskan", "Omboh dimampatkan", "Omboh bergerak ke atas"],
+            answer: "Campuran udara-bahan api disedut masuk"
+        },
+        {
+            question: "Apakah tujuan lejang Compression?",
+            options: ["Untuk menyedut bahan api", "Untuk melepaskan gas ekzos", "Untuk meningkatkan tekanan campuran", "Untuk menjana kuasa"],
+            answer: "Untuk meningkatkan tekanan campuran"
+        },
+        {
+            question: "Lejang mana yang membersihkan silinder daripada gas sisa?",
+            options: ["Lejang Intake", "Lejang Compression", "Lejang Power", "Lejang Exhaust"],
+            answer: "Lejang Exhaust"
+        },
+        {
+            question: "Bahan api apa yang biasa digunakan dalam enjin petrol 4-lejang?",
+            options: ["Diesel", "Gasoline (Petrol)", "Gas asli", "Kerosene"],
+            answer: "Gasoline (Petrol)"
+        },
+        {
+            question: "Apa yang berlaku pada injap Exhaust semasa lejang Power?",
+            options: ["Ia terbuka", "Ia tertutup", "Ia terbuka dan tertutup", "Ia separuh terbuka"],
+            answer: "Ia tertutup"
+        },
+        {
+            question: "Sebuah enjin empat lejang melengkapkan kitaran penuhnya dalam...",
+            options: ["Satu putaran aci engkol dan satu lejang omboh", "Dua putaran aci engkol dan empat lejang omboh", "Satu putaran aci engkol dan dua lejang omboh", "Empat putaran aci engkol dan dua lejang omboh"],
+            answer: "Dua putaran aci engkol dan empat lejang omboh"
+        }
+    ];
+
+    // Function to display the correct meme
+    const correctMeme = (caption = "Jawapan Betul! Awesome!") => `
+        <div class="meme-container flex">
+            <img src="https://placehold.co/400x300/F97316/FFFFFF?text=Good+Job!" alt="Correct Meme" class="meme-image" />
+            <p class="meme-caption">${caption}</p>
+        </div>
+    `;
+
+    // Function to display the incorrect meme
+    const incorrectMeme = (caption = "Aduh, salah! Cuba lagi, boss!") => `
+        <div class="meme-container flex">
+            <img src="https://placehold.co/400x300/EF4444/FFFFFF?text=Try+Again!" alt="Incorrect Meme" class="meme-image" />
+            <p class="meme-caption">${caption}</p>
+        </div>
+    `;
+    
+    // --- UI Rendering Functions ---
+
+    function renderStartScreen() {
+        quizApp.innerHTML = `
+            <div class="start-screen">
+                <h1 class="text-4xl md:text-5xl font-extrabold mb-6 text-gray-900 leading-tight">Kuiz Sistem 4 Lejang</h1>
+                <p class="text-lg md:text-xl text-gray-600 mb-8">Jom uji pengetahuan anda tentang enjin pembakaran dalaman 4 lejang. Jawab 25 soalan dan lihat berapa skor anda.</p>
+                <button id="startButton" class="px-8 py-4 bg-orange-600 text-white text-lg font-bold rounded-full hover:bg-orange-700 transition-transform transform hover:scale-105 shadow-lg">
+                    Mula Kuiz
+                </button>
+            </div>
+        `;
+        document.getElementById('startButton').addEventListener('click', loadQuestion);
+    }
+
+    function renderQuestionScreen() {
+        quizApp.innerHTML = `
+            <p id="score-display" class="text-xl font-semibold text-gray-600 mb-4">Skor: 0</p>
+            <div class="progress-bar-container">
+                <div id="progress-bar" class="progress-bar" style="width: 0%;"></div>
+            </div>
+            <div id="question-box" class="p-6 bg-gray-100 rounded-xl mb-6">
+                <p id="question-text" class="text-lg md:text-xl font-medium text-gray-800 mb-4"></p>
+                <div id="options-container" class="flex flex-col gap-3"></div>
+            </div>
+            <div id="feedback-section" class="feedback"></div>
+        `;
+        // Re-assign elements after innerHTML change
+        window.questionText = document.getElementById('question-text');
+        window.optionsContainer = document.getElementById('options-container');
+        window.scoreDisplay = document.getElementById('score-display');
+        window.feedbackSection = document.getElementById('feedback-section');
+        window.progressBar = document.getElementById('progress-bar');
+    }
+
+    // --- Quiz Logic ---
+
+    function loadQuestion() {
+        if (currentQuestionIndex === 0) {
+            renderQuestionScreen();
+        }
+        answered = false;
+        const currentQuestion = questions[currentQuestionIndex];
+        window.questionText.textContent = `${currentQuestionIndex + 1}. ${currentQuestion.question}`;
+        window.optionsContainer.innerHTML = '';
+        window.feedbackSection.innerHTML = '';
+        updateProgressBar();
+
+        currentQuestion.options.forEach(option => {
+            const button = document.createElement('button');
+            button.textContent = option;
+            button.classList.add('option-button');
+            button.addEventListener('click', () => handleAnswer(option));
+            window.optionsContainer.appendChild(button);
+        });
+    }
+
+    function handleAnswer(selectedOption) {
+        if (answered) return;
+        answered = true;
+        
+        const correct = selectedOption === questions[currentQuestionIndex].answer;
+        const buttons = document.querySelectorAll('.option-button');
+        
+        buttons.forEach(button => {
+            if (button.textContent === questions[currentQuestionIndex].answer) {
+                button.classList.add('correct');
+            } else if (button.textContent === selectedOption) {
+                button.classList.add('incorrect');
+            }
+            button.disabled = true;
+        });
+
+        if (correct) {
+            score++;
+            window.scoreDisplay.textContent = `Skor: ${score}`;
+            window.feedbackSection.innerHTML = correctMeme();
+        } else {
+            window.feedbackSection.innerHTML = incorrectMeme();
+        }
+        
+        // Show meme container with fade-in effect
+        const memeContainer = document.querySelector('.meme-container');
+        if (memeContainer) {
+            memeContainer.style.display = 'flex';
+            setTimeout(() => { memeContainer.style.opacity = 1; }, 10); // Start fade-in
+        }
+
+        setTimeout(() => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showFinalScore();
+            }
+        }, 3000);
+    }
+
+    function updateProgressBar() {
+        const progress = ((currentQuestionIndex) / questions.length) * 100;
+        window.progressBar.style.width = `${progress}%`;
+    }
+
+    function showFinalScore() {
+        quizApp.innerHTML = `
+            <div class="end-screen">
+                <h2 class="text-4xl font-bold mb-4 text-gray-800">Kuiz Selesai!</h2>
+                <p class="text-2xl font-semibold text-gray-700 mb-6">Skor akhir anda: ${score} / ${questions.length}</p>
+                <div class="meme-container flex mb-8" style="display:flex; opacity:1;">
+                    <img src="https://placehold.co/400x300/F97316/FFFFFF?text=Awesome!" alt="Final Score Meme" class="meme-image" />
+                    <p class="meme-caption">Sistem 4 Lejang Dikuasai!</p>
+                </div>
+                <button onclick="restartQuiz()" class="px-8 py-4 bg-orange-600 text-white text-lg font-bold rounded-full hover:bg-orange-700 transition-transform transform hover:scale-105 shadow-lg">
+                    Cuba Lagi
+                </button>
+            </div>
+        `;
+    }
+
+    function restartQuiz() {
+        currentQuestionIndex = 0;
+        score = 0;
+        renderStartScreen();
+    }
+
+    // Initialize the quiz
+    document.addEventListener('DOMContentLoaded', renderStartScreen);
+</script>
+
+</body>
+</html>
